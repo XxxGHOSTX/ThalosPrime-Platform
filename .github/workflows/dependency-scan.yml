@@ -1,0 +1,33 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+
+name: Dependency Scan — Thalos Prime
+
+on:
+  push:
+    paths: ["requirements.txt", "pyproject.toml", "extension/package.json"]
+  schedule:
+    - cron: "0 3 * * *"  # Daily 03:00 UTC
+
+jobs:
+  pip-audit:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      - run: pip-audit -r requirements.txt
+
+  npm-audit:
+    name: Node Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - working-directory: extension
+        run: npm audit --audit-level=high

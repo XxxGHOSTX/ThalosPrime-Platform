@@ -1,0 +1,44 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+# Thalos Prime Sovereign Mesh Orchestration
+
+version: '3.9'
+
+services:
+  thalos-core:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.core
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../STATELOG:/app/STATELOG
+    environment:
+      - OWNER=Tony Ray Macier III
+      - SEED_STRENGTH=64BIT
+      - DATABASE_URL=sqlite:///STATELOG/state.db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sentinel-discovery:
+    build: ../services/discovery-sentinel
+    network_mode: "host"
+    depends_on:
+      - thalos-core
+    environment:
+      - CONTROL_PLANE_URL=http://localhost:8000
+      - OWNER=Tony Ray Macier III
+
+  concierge-extension-api:
+    image: node:20-alpine
+    working_dir: /app/extension
+    volumes:
+      - ../extension:/app/extension
+    command: npm run start-server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - thalos-core

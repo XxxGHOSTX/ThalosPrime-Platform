@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "thalos-sentinel": {
+      "command": "python",
+      "args": ["-m", "services.discovery_sentinel.mcp_server"],
+      "env": {
+        "THALOS_ROOT": "./",
+        "OWNER": "Tony Ray Macier III"
+      }
+    },
+    "security-scanner": {
+      "command": "npx",
+      "args": ["@thalos/mcp-bandit-scanner"]
+    }
+  }
+}
