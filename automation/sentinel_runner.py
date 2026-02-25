@@ -16,11 +16,12 @@ from core.utilities import append_jsonl, now_iso, compute_sha256, validate_seed
 
 
 def run_scan(seed: int | None, log_file: str | None = None) -> int:
+    """Run the sentinel scan. Requires a valid 64-bit seed; returns exit code."""
+    if seed is None:
+        print("ERROR: --seed is required. Per governance, every service generating output MUST receive a seed.", file=sys.stderr)
+        return 1
     try:
-        actual_seed = validate_seed(seed) if seed else None
-        if actual_seed is None:
-            print("WARNING: No seed provided. Scan will run without deterministic reproducibility.")
-            actual_seed = 0
+        actual_seed = validate_seed(seed)
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
