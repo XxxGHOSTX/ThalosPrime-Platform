@@ -1,0 +1,12 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+# Thalos Prime Kubernetes Namespace
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: thalos-prime
+  labels:
+    app: thalos-prime
+    owner: tony-ray-macier-iii
+    version: "2.0.0"

@@ -5,6 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: thalos-core
+  namespace: thalos-prime
   labels:
     app: thalos-prime
     owner: tony-ray-macier-iii
@@ -18,20 +19,30 @@ spec:
     metadata:
       labels:
         app: thalos-core
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: thalos-core
           image: thalos-prime/core:2.0.0
           ports:
             - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: thalos-config
           env:
-            - name: OWNER
-              value: "Tony Ray Macier III"
             - name: THALOS_SEED
               valueFrom:
                 secretKeyRef:
                   name: thalos-secrets
                   key: execution-seed
+            - name: THALOS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: thalos-secrets
+                  key: api-token
           resources:
             requests:
               memory: "256Mi"
@@ -45,3 +56,17 @@ spec:
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: statelog-storage
+              mountPath: /app/STATELOG
+      volumes:
+        - name: statelog-storage
+          persistentVolumeClaim:
+            claimName: thalos-statelog-pvc
+

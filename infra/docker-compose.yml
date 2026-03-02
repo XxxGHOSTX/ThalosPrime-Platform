@@ -17,28 +17,45 @@ services:
       - OWNER=Tony Ray Macier III
       - SEED_STRENGTH=64BIT
       - DATABASE_URL=sqlite:///STATELOG/state.db
+      - THALOS_API_TOKEN=${THALOS_API_TOKEN:-thalos-dev-token}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  sentinel-discovery:
-    build: ../services/discovery-sentinel
-    network_mode: "host"
-    depends_on:
-      - thalos-core
-    environment:
-      - CONTROL_PLANE_URL=http://localhost:8000
-      - OWNER=Tony Ray Macier III
-
-  concierge-extension-api:
-    image: node:20-alpine
-    working_dir: /app/extension
-    volumes:
-      - ../extension:/app/extension
-    command: npm run start-server
+  thalos-sentinel:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.core
+    command: ["python", "-m", "uvicorn", "services.discovery_sentinel.mcp_server:app",
+              "--host", "0.0.0.0", "--port", "8001"]
     ports:
-      - "3000:3000"
+      - "8001:8001"
+    volumes:
+      - ../STATELOG:/app/STATELOG
+    environment:
+      - OWNER=Tony Ray Macier III
+      - THALOS_API_TOKEN=${THALOS_API_TOKEN:-thalos-dev-token}
+    depends_on:
+      thalos-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
     depends_on:
       - thalos-core
+

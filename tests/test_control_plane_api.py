@@ -100,3 +100,23 @@ def test_multiple_turns_accumulate():
     assert len(turns) == 2
     assert turns[0]["role"] == "user"
     assert turns[1]["role"] == "assistant"
+
+
+def test_metrics_endpoint_returns_prometheus_format():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "text/plain" in response.headers["content-type"]
+    assert "thalos_sessions_created_total" in response.text
+    assert "thalos_turns_added_total" in response.text
+
+
+def test_ingest_endpoint_present():
+    """Verify the ingest router is mounted on the control plane."""
+    response = client.post(
+        "/ingest/events",
+        json={"events": [{"msg": "test"}], "source": "test"},
+        headers={"X-Api-Token": "thalos-dev-token"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["accepted"] == 1

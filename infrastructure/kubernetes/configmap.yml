@@ -1,0 +1,19 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+# Thalos Prime ConfigMap — non-secret runtime configuration
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thalos-config
+  namespace: thalos-prime
+  labels:
+    app: thalos-prime
+    owner: tony-ray-macier-iii
+data:
+  OWNER: "Tony Ray Macier III"
+  PLATFORM_VERSION: "2.0.0"
+  SEED_STRENGTH: "64BIT"
+  STATELOG_PATH: "/app/STATELOG/events.jsonl"
+  DATABASE_URL: "sqlite:////app/STATELOG/state.db"
+  LOG_LEVEL: "INFO"

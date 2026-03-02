@@ -39,3 +39,12 @@ STATELOG/*.db
 STATELOG/*.db-shm
 STATELOG/*.db-wal
 STATELOG/thalos.log
+STATELOG/*.jsonl
+
+# Extension build artifacts
+extension/dist/
+extension/node_modules/
+extension/*.vsix
+
+# Pipeline output directories
+output/

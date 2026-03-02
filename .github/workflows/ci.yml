@@ -10,6 +10,42 @@ on:
     branches: ["main"]
 
 jobs:
+  marker-gate:
+    name: Forbidden Marker Check (TODO/FIXME/STUB/PLACEHOLDER/TBD)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject forbidden markers
+        run: |
+          if grep -rn --include="*.py" --include="*.ts" --include="*.yml" \
+               -E '\b(TODO|FIXME|STUB|PLACEHOLDER|TBD)\b' \
+               services/ core/ system/ automation/ tests/ .github/workflows/ 2>/dev/null | \
+               grep -v "^Binary" | grep -v "#.*allowed"; then
+            echo "ERROR: Forbidden markers found. Remove all TODO/FIXME/STUB/PLACEHOLDER/TBD." >&2
+            exit 1
+          fi
+          echo "No forbidden markers found."
+
+  seed-gate:
+    name: Seed Enforcement Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify sentinel_runner requires --seed
+        run: |
+          python -m automation.sentinel_runner 2>&1 | grep -i "error\|required\|seed" || true
+          python -c "
+          import sys; sys.argv = ['test']
+          from automation.sentinel_runner import run_scan
+          rc = run_scan(None)
+          assert rc == 1, 'Expected exit code 1 when seed is missing'
+          print('Seed enforcement verified: exits 1 without seed')
+          "
+
   test:
     name: Test & Lint
     runs-on: ubuntu-latest
@@ -24,8 +60,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run linter (ruff)
-        run: ruff check services/ core/ system/ automation/
+      - name: Run linter (ruff check)
+        run: ruff check . --output-format=github
+
+      - name: Run linter (ruff format check)
+        run: ruff format --check .
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
@@ -38,3 +77,94 @@ jobs:
           path: |
             .pytest_cache/
             STATELOG/
+
+  sbom:
+    name: SBOM Generation (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install cyclonedx-bom
+        run: pip install cyclonedx-bom
+
+      - name: Install project dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate Python SBOM
+        run: cyclonedx-py environment --output-file sbom-python.json --output-format json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.run_id }}
+          path: sbom-python.json
+
+  k8s-validate:
+    name: Kubernetes Manifest Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.6.6/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C /usr/local/bin
+
+      - name: Validate K8s manifests
+        run: |
+          kubeconform -strict -summary \
+            infrastructure/kubernetes/namespace.yml \
+            infrastructure/kubernetes/deployment.yml \
+            infrastructure/kubernetes/service.yml \
+            infrastructure/kubernetes/configmap.yml \
+            infrastructure/kubernetes/pvc.yml
+
+  docker-smoke:
+    name: Docker Build & Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build control-plane image
+        run: docker build -f infra/Dockerfile.core -t thalos-prime-core:ci .
+
+      - name: Smoke test — health endpoint
+        run: |
+          docker run -d --name thalos-smoke -p 18000:8000 \
+            -e THALOS_SEED=9876543210123456 \
+            thalos-prime-core:ci \
+            python -m uvicorn services.control_plane.main:app --host 0.0.0.0 --port 8000
+          sleep 5
+          curl -sf http://localhost:18000/health | grep '"status":"ok"'
+          docker rm -f thalos-smoke
+
+  extension-build:
+    name: VS Code Extension Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install extension dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Build extension
+        working-directory: extension
+        run: npm run build
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build-${{ github.run_id }}
+          path: extension/dist/
+

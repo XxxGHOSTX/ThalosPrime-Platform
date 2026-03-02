@@ -29,9 +29,7 @@
     "lint": "eslint src --ext .ts",
     "test": "node dist/test/runTests.js"
   },
-  "dependencies": {
-    "@vscode/chat-extension-utils": "^0.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",

@@ -1,0 +1,19 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+# Thalos Prime PersistentVolumeClaim — SQLite WAL state store
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: thalos-statelog-pvc
+  namespace: thalos-prime
+  labels:
+    app: thalos-prime
+    owner: tony-ray-macier-iii
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
