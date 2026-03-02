@@ -9,10 +9,15 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   marker-gate:
     name: Forbidden Marker Check (TODO/FIXME/STUB/PLACEHOLDER/TBD)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Reject forbidden markers
@@ -29,6 +34,8 @@ jobs:
   seed-gate:
     name: Seed Enforcement Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.11
@@ -49,6 +56,8 @@ jobs:
   test:
     name: Test & Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -81,6 +90,8 @@ jobs:
   sbom:
     name: SBOM Generation (CycloneDX)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -107,6 +118,8 @@ jobs:
   k8s-validate:
     name: Kubernetes Manifest Validation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -127,6 +140,8 @@ jobs:
   docker-smoke:
     name: Docker Build & Smoke Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -146,6 +161,8 @@ jobs:
   extension-build:
     name: VS Code Extension Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 

@@ -75,6 +75,8 @@ def test_normalized_event_input_hash_deterministic():
 
 
 def test_normalizer_produces_normalized_event():
+    import hashlib
+
     event = IngestEvent(source="test", raw="raw_data", timestamp="2026-01-01T00:00:00Z", format="proxy_log")
     normalizer = EventNormalizer()
     result = normalizer.normalize(event)
@@ -82,7 +84,8 @@ def test_normalizer_produces_normalized_event():
     assert result.event_id == event.event_id
     assert result.source == event.source
     assert result.raw == event.raw
-    assert result.input_hash == result.input_hash  # consistent
+    expected_hash = hashlib.sha256("raw_data".encode()).hexdigest()
+    assert result.input_hash == expected_hash
 
 
 def test_normalizer_input_hash_matches_sha256():

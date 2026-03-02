@@ -25,49 +25,61 @@ def _write_log_file(lines: list[str], suffix: str = ".log") -> str:
     return f.name
 
 
+def _temp_statelog() -> str:
+    """Create a secure temporary JSONL file path for STATELOG output."""
+    f = tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False)
+    f.close()
+    return f.name
+
+
 def test_pipeline_runs_empty_input():
     with tempfile.TemporaryDirectory() as out_dir:
         log_file = _write_log_file([])
+        statelog = _temp_statelog()
         try:
             manifest = run_pipeline(
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out_dir,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=statelog,
             )
             assert manifest["risk_level"] == "LOW"
             assert manifest["findings_count"] == 0
             assert manifest["seed"] == 9876543210123456
         finally:
             Path(log_file).unlink(missing_ok=True)
+            Path(statelog).unlink(missing_ok=True)
 
 
 def test_pipeline_detects_shadow_ai():
     with tempfile.TemporaryDirectory() as out_dir:
         log_file = _write_log_file(["GET https://api.openai.com/v1/chat/completions HTTP/1.1"])
+        statelog = _temp_statelog()
         try:
             manifest = run_pipeline(
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out_dir,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=statelog,
             )
             assert manifest["risk_level"] == "CRITICAL"
             assert manifest["findings_count"] >= 1
             assert len(manifest["artifacts"]) >= 1
         finally:
             Path(log_file).unlink(missing_ok=True)
+            Path(statelog).unlink(missing_ok=True)
 
 
 def test_pipeline_produces_manifest_file():
     with tempfile.TemporaryDirectory() as out_dir:
         log_file = _write_log_file(["GET https://example.com/health HTTP/1.1"])
+        statelog = _temp_statelog()
         try:
             run_pipeline(
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out_dir,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=statelog,
             )
             manifest_path = Path(out_dir) / "manifest.json"
             assert manifest_path.exists()
@@ -76,17 +88,19 @@ def test_pipeline_produces_manifest_file():
             assert "manifest_sha256" in saved
         finally:
             Path(log_file).unlink(missing_ok=True)
+            Path(statelog).unlink(missing_ok=True)
 
 
 def test_pipeline_manifest_has_required_fields():
     with tempfile.TemporaryDirectory() as out_dir:
         log_file = _write_log_file([])
+        statelog = _temp_statelog()
         try:
             manifest = run_pipeline(
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out_dir,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=statelog,
             )
             required = [
                 "schema_version",
@@ -106,12 +120,14 @@ def test_pipeline_manifest_has_required_fields():
                 assert field in manifest, f"Missing field: {field}"
         finally:
             Path(log_file).unlink(missing_ok=True)
+            Path(statelog).unlink(missing_ok=True)
 
 
 def test_pipeline_is_deterministic():
     """Bit-for-bit identical output for same seed + same input."""
     lines = ["GET https://api.openai.com/v1/chat/completions HTTP/1.1"]
     log_file = _write_log_file(lines)
+    sl1, sl2 = _temp_statelog(), _temp_statelog()
 
     try:
         with tempfile.TemporaryDirectory() as out1, tempfile.TemporaryDirectory() as out2:
@@ -119,13 +135,13 @@ def test_pipeline_is_deterministic():
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out1,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=sl1,
             )
             m2 = run_pipeline(
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out2,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=sl2,
             )
             # Core deterministic fields must be identical
             assert m1["pipeline_state_hash"] == m2["pipeline_state_hash"]
@@ -140,11 +156,14 @@ def test_pipeline_is_deterministic():
                 assert a1["rule_id"] == a2["rule_id"]
     finally:
         Path(log_file).unlink(missing_ok=True)
+        Path(sl1).unlink(missing_ok=True)
+        Path(sl2).unlink(missing_ok=True)
 
 
 def test_pipeline_different_seeds_produce_different_hashes():
     lines = ["GET https://api.openai.com/v1/chat/completions HTTP/1.1"]
     log_file = _write_log_file(lines)
+    sl1, sl2 = _temp_statelog(), _temp_statelog()
 
     try:
         with tempfile.TemporaryDirectory() as out1, tempfile.TemporaryDirectory() as out2:
@@ -152,13 +171,13 @@ def test_pipeline_different_seeds_produce_different_hashes():
                 seed=9876543210123456,
                 input_paths=[log_file],
                 output_dir=out1,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=sl1,
             )
             m2 = run_pipeline(
                 seed=1111111111111111,
                 input_paths=[log_file],
                 output_dir=out2,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=sl2,
             )
             # Different seeds → different state hashes
             assert m1["pipeline_state_hash"] != m2["pipeline_state_hash"]
@@ -166,6 +185,8 @@ def test_pipeline_different_seeds_produce_different_hashes():
             assert m1["artifacts"][0]["rule_id"] != m2["artifacts"][0]["rule_id"]
     finally:
         Path(log_file).unlink(missing_ok=True)
+        Path(sl1).unlink(missing_ok=True)
+        Path(sl2).unlink(missing_ok=True)
 
 
 def test_pipeline_invalid_seed_raises():
@@ -175,14 +196,14 @@ def test_pipeline_invalid_seed_raises():
                 seed=0,
                 input_paths=[],
                 output_dir=out_dir,
-                statelog_path=tempfile.mktemp(suffix=".jsonl"),
+                statelog_path=_temp_statelog(),
             )
 
 
 def test_pipeline_writes_statelog():
     with tempfile.TemporaryDirectory() as out_dir:
         log_file = _write_log_file([])
-        statelog = tempfile.mktemp(suffix=".jsonl")
+        statelog = _temp_statelog()
         try:
             run_pipeline(
                 seed=9876543210123456,

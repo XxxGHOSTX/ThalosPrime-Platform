@@ -8,10 +8,10 @@ import json
 from pathlib import Path
 
 from core.utilities import now_iso
-from .schema import IngestEvent
+from .schema import IngestEvent, INGEST_KNOWN_FIELDS
 
 # Top-level IngestEvent field names excluded when building per-event metadata from parsed JSON.
-_KNOWN_FIELDS: frozenset[str] = frozenset({"event_id", "source", "raw", "timestamp", "format", "severity", "metadata"})
+_KNOWN_FIELDS: frozenset[str] = INGEST_KNOWN_FIELDS
 
 
 class FileIngestor:

@@ -12,6 +12,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.utilities import now_iso
 
+# Field names of IngestEvent — used to separate known schema fields from metadata
+# in JSONL and HTTP ingest parsing. Defined here so both ingestors share the same set.
+INGEST_KNOWN_FIELDS: frozenset[str] = frozenset(
+    {"event_id", "source", "raw", "timestamp", "format", "severity", "metadata"}
+)
+
 
 class IngestEvent(BaseModel):
     """Immutable, validated representation of a raw ingest event."""

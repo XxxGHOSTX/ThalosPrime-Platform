@@ -13,10 +13,10 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 from core.utilities import now_iso
-from .schema import IngestEvent
+from .schema import IngestEvent, INGEST_KNOWN_FIELDS
 
 # IngestEvent field names excluded when extracting per-event metadata from raw HTTP payloads.
-_KNOWN_FIELDS: frozenset[str] = frozenset({"event_id", "source", "raw", "timestamp", "format", "severity", "metadata"})
+_KNOWN_FIELDS: frozenset[str] = INGEST_KNOWN_FIELDS
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 
