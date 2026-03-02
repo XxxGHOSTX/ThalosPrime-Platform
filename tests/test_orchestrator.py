@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 import tempfile
 import pytest
@@ -63,6 +64,7 @@ def test_statelog_written():
     orch.run_discovery_pipeline([])
     assert Path(path).exists()
     import json
+
     lines = Path(path).read_text().strip().splitlines()
     assert len(lines) >= 1
     record = json.loads(lines[0])

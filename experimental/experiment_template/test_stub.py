@@ -5,6 +5,7 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 
 ⚠️  EXPERIMENTAL TEST STUB — NOT STABLE
 """
+
 import pytest
 from experimental.experiment_template.experiment import ExperimentStub
 

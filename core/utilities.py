@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import hashlib
 import json
 from datetime import datetime, timezone
@@ -51,7 +52,7 @@ def validate_seed(seed: int | None, min_bits: int = 64) -> int:
     """Validate that a seed is a positive non-zero integer of at least min_bits."""
     if seed is None or not isinstance(seed, int) or seed <= 0:
         raise ValueError(f"Invalid seed: {seed}. A positive 64-bit integer is required.")
-    max_val = 2 ** min_bits
+    max_val = 2**min_bits
     if seed >= max_val:
         raise ValueError(f"Seed {seed} exceeds {min_bits}-bit maximum ({max_val}).")
     return seed

@@ -3,12 +3,13 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from services.discovery_sentinel.risk_analyzer import RiskAnalyzer, RiskReport, RISK_WEIGHTS
+from services.discovery_sentinel.risk_analyzer import RiskAnalyzer, RISK_WEIGHTS
 
 
 def test_empty_findings_is_low():

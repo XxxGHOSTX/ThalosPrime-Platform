@@ -2,8 +2,10 @@
 PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
+
+Policy enforcement for Thalos Prime governance rules.
 """
-"""Policy enforcement for Thalos Prime governance rules."""
+
 import ast
 import sys
 from pathlib import Path

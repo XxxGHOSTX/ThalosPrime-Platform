@@ -3,7 +3,6 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
-from pathlib import Path
 
 # Built-in template strings (Jinja2-style, rendered with simple str.format_map)
 TEMPLATES: dict[str, str] = {

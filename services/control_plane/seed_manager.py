@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 # © 2026 Tony Ray Macier III - Proprietary CSAO Logic
 from hashlib import sha256
 import json

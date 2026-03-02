@@ -3,7 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
-import pytest
+
 import sys
 from pathlib import Path
 
@@ -36,4 +36,4 @@ def test_seed_is_positive_integer():
 def test_seed_is_64bit():
     mgr = ThalosSeedManager()
     seed = mgr.derive_execution_seed({}, "test-session")
-    assert seed < 2 ** 64
+    assert seed < 2**64

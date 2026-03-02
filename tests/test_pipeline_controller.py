@@ -3,12 +3,13 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from system.pipeline_controller import PipelineController, PipelineRun, PipelineStatus
+from system.pipeline_controller import PipelineController, PipelineStatus
 
 
 def test_create_run():

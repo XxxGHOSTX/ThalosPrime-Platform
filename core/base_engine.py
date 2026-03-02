@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -17,6 +18,7 @@ MODULE_OWNER = "Tony Ray Macier III"
 @dataclass
 class ExecutionContext:
     """Immutable execution context passed to every engine invocation."""
+
     seed: int
     session_id: str
     owner: str = MODULE_OWNER

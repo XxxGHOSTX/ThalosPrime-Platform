@@ -2,9 +2,10 @@
 PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
+
+Auto-generates a new Thalos Prime module scaffold.
 """
-"""Auto-generates a new Thalos Prime module scaffold."""
-import sys
+
 import argparse
 from pathlib import Path
 

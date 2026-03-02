@@ -2,8 +2,10 @@
 PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
+
+Automated module generator for Thalos Prime.
 """
-"""Automated module generator for Thalos Prime."""
+
 import sys
 import argparse
 from pathlib import Path

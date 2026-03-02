@@ -3,17 +3,19 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from services.artifact_engine.template_factory import TemplateFactory, TEMPLATES
+from services.artifact_engine.template_factory import TemplateFactory
 from services.artifact_engine.repair_logic import ArtifactRepairEngine
 
 
 # ── TemplateFactory tests ──────────────────────────────────────────────────────
+
 
 def test_list_templates():
     factory = TemplateFactory()
@@ -24,11 +26,14 @@ def test_list_templates():
 
 def test_render_firewall_rule():
     factory = TemplateFactory()
-    output = factory.render("firewall_rule", {
-        "rule_id": "abc123",
-        "blocked_endpoint": "api.openai.com",
-        "seed": 99999,
-    })
+    output = factory.render(
+        "firewall_rule",
+        {
+            "rule_id": "abc123",
+            "blocked_endpoint": "api.openai.com",
+            "seed": 99999,
+        },
+    )
     assert "abc123" in output
     assert "api.openai.com" in output
     assert "Tony Ray Macier III" in output
@@ -36,11 +41,14 @@ def test_render_firewall_rule():
 
 def test_render_code_patch():
     factory = TemplateFactory()
-    output = factory.render("code_patch", {
-        "patch_hash": "deadbeef",
-        "vulnerability": {"type": "shadow_ai"},
-        "seed": 12345,
-    })
+    output = factory.render(
+        "code_patch",
+        {
+            "patch_hash": "deadbeef",
+            "vulnerability": {"type": "shadow_ai"},
+            "seed": 12345,
+        },
+    )
     assert "deadbeef" in output
     assert "Tony Ray Macier III" in output
 
@@ -52,6 +60,7 @@ def test_render_unknown_template_raises():
 
 
 # ── ArtifactRepairEngine tests ─────────────────────────────────────────────────
+
 
 def test_generate_firewall_rule_returns_dict():
     engine = ArtifactRepairEngine(seed=9876543210123456)

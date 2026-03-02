@@ -2,23 +2,28 @@
 PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
+
+Entry point for automated Sentinel scan (used by GitHub Actions).
 """
-"""Entry point for automated Sentinel scan (used by GitHub Actions)."""
+
 import sys
 import argparse
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from services.discovery_sentinel.scanner import SentinelScanner
-from services.discovery_sentinel.risk_analyzer import RiskAnalyzer
-from core.utilities import append_jsonl, now_iso, compute_sha256, validate_seed
+from services.discovery_sentinel.scanner import SentinelScanner  # noqa: E402
+from services.discovery_sentinel.risk_analyzer import RiskAnalyzer  # noqa: E402
+from core.utilities import append_jsonl, now_iso, compute_sha256, validate_seed  # noqa: E402
 
 
 def run_scan(seed: int | None, log_file: str | None = None) -> int:
     """Run the sentinel scan. Requires a valid 64-bit seed; returns exit code."""
     if seed is None:
-        print("ERROR: --seed is required. Per governance, every service generating output MUST receive a seed.", file=sys.stderr)
+        print(
+            "ERROR: --seed is required. Per governance, every service generating output MUST receive a seed.",
+            file=sys.stderr,
+        )
         return 1
     try:
         actual_seed = validate_seed(seed)

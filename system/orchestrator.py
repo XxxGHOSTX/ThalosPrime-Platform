@@ -3,10 +3,10 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 import argparse
 from core.utilities import compute_sha256, append_jsonl, now_iso, validate_seed
-from core.base_engine import ExecutionContext
 
 
 class ThalosOrchestrator:

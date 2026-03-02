@@ -3,9 +3,9 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 import tempfile
-import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))

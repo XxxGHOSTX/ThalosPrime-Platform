@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 from dataclasses import dataclass, field
 from enum import Enum
 from core.utilities import now_iso, compute_sha256

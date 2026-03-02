@@ -3,6 +3,7 @@ PROPRIETARY AND CONFIDENTIAL
 Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 This code implements the Thalos Prime Sovereign Discovery Logic.
 """
+
 import sys
 import pytest
 from pathlib import Path
@@ -13,6 +14,7 @@ from core.base_engine import ExecutionContext, BaseEngine, MODULE_VERSION, MODUL
 
 
 # ── ExecutionContext tests ─────────────────────────────────────────────────────
+
 
 def test_execution_context_state_hash_is_sha256():
     ctx = ExecutionContext(seed=9876543210123456, session_id="test-session")
@@ -41,6 +43,7 @@ def test_execution_context_defaults():
 
 
 # ── BaseEngine tests ───────────────────────────────────────────────────────────
+
 
 class ConcreteEngine(BaseEngine):
     """Minimal concrete subclass for testing BaseEngine."""
