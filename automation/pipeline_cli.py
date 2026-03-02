@@ -65,9 +65,7 @@ def run_pipeline(
         events = ingestor.ingest_file(ip)
         all_events.extend(events)
 
-    # Normalize events (used for metadata/audit; raw text fed to scanner)
-    for e in all_events:
-        normalizer.normalize(e)
+    # Derive raw lines for hashing and scanning
     raw_lines = [e.raw for e in all_events]
     input_hash = compute_sha256({"seed": seed, "lines": raw_lines})
 
