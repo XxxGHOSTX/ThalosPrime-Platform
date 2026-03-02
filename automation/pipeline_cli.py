@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.utilities import compute_sha256, append_jsonl, now_iso, validate_seed  # noqa: E402
 from services.ingest.file_ingest import FileIngestor  # noqa: E402
-from services.ingest.normalizer import EventNormalizer  # noqa: E402
 from services.discovery_sentinel.scanner import SentinelScanner  # noqa: E402
 from services.discovery_sentinel.risk_analyzer import RiskAnalyzer  # noqa: E402
 from services.artifact_engine.repair_logic import ArtifactRepairEngine  # noqa: E402
@@ -59,7 +58,6 @@ def run_pipeline(
 
     # ── Stage 1: Ingest ────────────────────────────────────────────────
     ingestor = FileIngestor()
-    normalizer = EventNormalizer()
     all_events = []
     for ip in input_paths:
         events = ingestor.ingest_file(ip)
@@ -151,10 +149,10 @@ def run_pipeline(
     }
 
     manifest_path = out_path / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2))
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
     manifest["manifest_sha256"] = _sha256_file(manifest_path)
-    # Rewrite with hash included
-    manifest_path.write_text(json.dumps(manifest, indent=2))
+    # Rewrite with hash included using canonical JSON serialization
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
 
     return manifest
 

@@ -124,10 +124,17 @@ def test_pipeline_manifest_has_required_fields():
 
 
 def test_pipeline_is_deterministic():
-    """Bit-for-bit identical output for same seed + same input."""
+    """Deterministic core artifacts must be identical for same seed + same input."""
     lines = ["GET https://api.openai.com/v1/chat/completions HTTP/1.1"]
     log_file = _write_log_file(lines)
     sl1, sl2 = _temp_statelog(), _temp_statelog()
+
+    # Fields that are intentionally non-deterministic (wall-clock / UUID-based)
+    _NON_DETERMINISTIC = {"generated_at", "session_id", "manifest_sha256"}
+
+    def _canonical(manifest: dict) -> dict:
+        """Strip non-deterministic fields for comparison."""
+        return {k: v for k, v in manifest.items() if k not in _NON_DETERMINISTIC}
 
     try:
         with tempfile.TemporaryDirectory() as out1, tempfile.TemporaryDirectory() as out2:
@@ -143,12 +150,14 @@ def test_pipeline_is_deterministic():
                 output_dir=out2,
                 statelog_path=sl2,
             )
-            # Core deterministic fields must be identical
-            assert m1["pipeline_state_hash"] == m2["pipeline_state_hash"]
-            assert m1["input_hash"] == m2["input_hash"]
-            assert m1["risk_level"] == m2["risk_level"]
-            assert m1["risk_score"] == m2["risk_score"]
-            assert m1["findings_count"] == m2["findings_count"]
+            # Full manifest content (minus wall-clock / UUID fields) must be identical
+            assert _canonical(m1) == _canonical(m2)
+
+            # Saved manifest.json on disk must also have identical deterministic content
+            saved1 = json.loads((Path(out1) / "manifest.json").read_text(encoding="utf-8"))
+            saved2 = json.loads((Path(out2) / "manifest.json").read_text(encoding="utf-8"))
+            assert _canonical(saved1) == _canonical(saved2)
+
             # Artifact-level hashes must be identical
             for a1, a2 in zip(m1["artifacts"], m2["artifacts"]):
                 assert a1["rule_sha256"] == a2["rule_sha256"]

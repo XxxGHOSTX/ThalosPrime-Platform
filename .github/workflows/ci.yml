@@ -22,10 +22,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reject forbidden markers
         run: |
-          if grep -rn --include="*.py" --include="*.ts" --include="*.yml" \
+          if grep -rn \
+               --include="*.py" --include="*.ts" --include="*.yml" --include="*.md" \
+               --exclude="secrets-template.yml" \
                -E '\b(TODO|FIXME|STUB|PLACEHOLDER|TBD)\b' \
-               services/ core/ system/ automation/ tests/ .github/workflows/ 2>/dev/null | \
-               grep -v "^Binary" | grep -v "#.*allowed"; then
+               services/ core/ system/ automation/ tests/ scripts/ \
+               infra/ infrastructure/ docs/ .github/workflows/ 2>/dev/null | \
+               grep -v "^Binary" | grep -v "#.*allowed" | \
+               grep -v "secrets-template"; then
             echo "ERROR: Forbidden markers found. Remove all TODO/FIXME/STUB/PLACEHOLDER/TBD." >&2
             exit 1
           fi

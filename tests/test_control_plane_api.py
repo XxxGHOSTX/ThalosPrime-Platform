@@ -110,12 +110,13 @@ def test_metrics_endpoint_returns_prometheus_format():
     assert "thalos_turns_added_total" in response.text
 
 
-def test_ingest_endpoint_present():
+def test_ingest_endpoint_present(monkeypatch):
     """Verify the ingest router is mounted on the control plane."""
+    monkeypatch.setenv("THALOS_API_TOKEN", "cp-test-token")
     response = client.post(
         "/ingest/events",
         json={"events": [{"msg": "test"}], "source": "test"},
-        headers={"X-Api-Token": "thalos-dev-token"},
+        headers={"X-Api-Token": "cp-test-token"},
     )
     assert response.status_code == 200
     data = response.json()

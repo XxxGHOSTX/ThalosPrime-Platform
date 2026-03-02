@@ -5,7 +5,7 @@
 
 ## Determinism Guarantee
 
-Thalos Prime is designed for **bit-for-bit reproducible outputs**: given the same seed and the same input files, every pipeline run produces identical artifacts, hashes, and manifests.
+Thalos Prime is designed for **deterministic, seed-reproducible core artifacts**: given the same seed and the same input files, every pipeline run produces identical versioned artifacts, hashes, and manifests. Operational metadata such as `generated_at`, `session_id`, and STATELOG timestamps is intentionally non-deterministic and excluded from this guarantee.
 
 ---
 

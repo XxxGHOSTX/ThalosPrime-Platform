@@ -113,3 +113,11 @@ def test_run_scan_is_deterministic():
         json={"name": "sentinel/run-scan", "arguments": {"log_entries": logs, "seed": 9876543210123456}},
     )
     assert r1.json()["state_hash"] == r2.json()["state_hash"]
+
+
+def test_metrics_endpoint_returns_prometheus_format():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "text/plain" in response.headers["content-type"]
+    assert "thalos_sentinel_scans_total" in response.text
+    assert "thalos_sentinel_findings_total" in response.text

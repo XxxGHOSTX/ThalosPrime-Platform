@@ -174,11 +174,12 @@ def test_ingest_file_dispatches_on_extension():
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-def test_http_ingest_rejects_invalid_token():
+def test_http_ingest_rejects_invalid_token(monkeypatch):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
     from services.ingest.http_ingest import router
 
+    monkeypatch.setenv("THALOS_API_TOKEN", "correct-secret-token")
     app = FastAPI()
     app.include_router(router)
     client = TestClient(app)
@@ -187,6 +188,26 @@ def test_http_ingest_rejects_invalid_token():
         "/ingest/events",
         json={"events": [{"message": "test"}]},
         headers={"X-Api-Token": "wrong-token"},
+    )
+    assert response.status_code == 401
+
+
+def test_http_ingest_rejects_unconfigured_token(monkeypatch):
+    """Verify the endpoint rejects requests when THALOS_API_TOKEN is not set."""
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from services.ingest.http_ingest import router
+
+    # Ensure the env var is not set (or equals default)
+    monkeypatch.delenv("THALOS_API_TOKEN", raising=False)
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    response = client.post(
+        "/ingest/events",
+        json={"events": [{"message": "test"}]},
+        headers={"X-Api-Token": "thalos-dev-token"},
     )
     assert response.status_code == 401
 

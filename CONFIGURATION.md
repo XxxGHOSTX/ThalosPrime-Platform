@@ -50,8 +50,12 @@ The STATELOG JSONL file grows unbounded. Implement rotation externally (e.g., lo
 
 The `THALOS_API_TOKEN` is validated with `hmac.compare_digest` (constant-time) to prevent timing oracle attacks.
 
+**The ingest endpoint rejects all requests if `THALOS_API_TOKEN` is not set** — there is no insecure default. You must set a strong secret token before the endpoint accepts any traffic.
+
 In production, inject the token via Kubernetes Secret (see `infrastructure/kubernetes/secrets-template.yml`).
 
 ## Prometheus Scrape Configuration
 
-See `infrastructure/monitoring/prometheus.yml`. Metrics are exposed at `/metrics` on both services.
+See `infrastructure/monitoring/prometheus.yml`. Both services expose a `/metrics` endpoint:
+- Control Plane (`thalos-core:8000/metrics`) — session/turn counters and request latency
+- Sentinel MCP (`thalos-sentinel:8001/metrics`) — scan count and findings counter

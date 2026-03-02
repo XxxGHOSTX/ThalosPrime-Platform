@@ -156,7 +156,13 @@ All pipeline events are written to `STATELOG/events.jsonl`. Each line is a JSON 
 
 ## Prometheus Metrics
 
-Scraped from `/metrics` on each service. Key metrics:
+Both services expose a `/metrics` endpoint. Key metrics:
+
+**Control Plane (`:8000/metrics`):**
 - `thalos_sessions_created_total` — sessions opened
 - `thalos_turns_added_total` — turns appended
 - `thalos_request_duration_seconds` — per-endpoint latency histogram
+
+**Sentinel MCP (`:8001/metrics`):**
+- `thalos_sentinel_scans_total` — total scans executed
+- `thalos_sentinel_findings_total` — total shadow AI findings detected

@@ -7,8 +7,9 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 import sys
 import argparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 from .scanner import SentinelScanner
 from .risk_analyzer import RiskAnalyzer
@@ -24,6 +25,16 @@ app = FastAPI(
 _scanner = SentinelScanner()
 _analyzer = RiskAnalyzer()
 _auditor = AgenticAuditor()
+
+# Prometheus metrics
+_SCANS_RUN = Counter(
+    "thalos_sentinel_scans_total",
+    "Total number of sentinel scans executed",
+)
+_FINDINGS_TOTAL = Counter(
+    "thalos_sentinel_findings_total",
+    "Total number of shadow AI findings detected",
+)
 
 # MCP tool definitions — consumed by the Concierge Extension via McpClient
 TOOLS = [
@@ -106,6 +117,8 @@ def call_tool(request: ToolCallRequest) -> dict:
             "timestamp": now_iso(),
         }
         append_jsonl("STATELOG/discovery.jsonl", event)
+        _SCANS_RUN.inc()
+        _FINDINGS_TOTAL.inc(len(findings))
         return {
             "content": [{"type": "text", "text": str(findings)}],
             "state_hash": state_hash,
@@ -162,6 +175,12 @@ def call_tool(request: ToolCallRequest) -> dict:
 def health() -> dict:
     """Liveness probe."""
     return {"status": "ok", "service": "thalos-sentinel-mcp", "version": "2.0.0"}
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Prometheus metrics scrape endpoint."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def main() -> None:
