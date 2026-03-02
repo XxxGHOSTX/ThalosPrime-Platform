@@ -1,0 +1,40 @@
+{
+  "name": "thalos-prime-concierge",
+  "displayName": "Thalos Prime Concierge",
+  "description": "© 2026 Tony Ray Macier III. Thalos Prime Sovereign Discovery Platform - VS Code Extension",
+  "version": "2.0.0",
+  "publisher": "thalos-prime",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["AI", "Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "thalos.concierge",
+        "name": "concierge",
+        "fullName": "Thalos Prime Concierge",
+        "description": "Primary navigational and inquiry interface for Thalos Prime.",
+        "isSticky": true
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -watch -p tsconfig.json",
+    "start-server": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "test": "node dist/test/runTests.js"
+  },
+  "dependencies": {
+    "@vscode/chat-extension-utils": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.0"
+  }
+}

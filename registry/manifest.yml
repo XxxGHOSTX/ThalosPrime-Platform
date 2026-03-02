@@ -1,0 +1,80 @@
+# PROPRIETARY AND CONFIDENTIAL
+# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
+
+schema_version: "1.0"
+platform: "ThalosPrime-Platform"
+owner: "Tony Ray Macier III"
+version: "2.0.0"
+updated_at: "2026-02-25T00:00:00Z"
+
+modules:
+  - name: core
+    path: core/
+    version: "2.0.0"
+    stability: stable
+    dependencies: []
+    description: "Fundamental logic and reusable system primitives"
+
+  - name: system
+    path: system/
+    version: "2.0.0"
+    stability: stable
+    dependencies: [core]
+    description: "Orchestration and execution pipelines"
+
+  - name: experimental
+    path: experimental/
+    version: "0.1.0"
+    stability: experimental
+    dependencies: []
+    description: "Sandbox for research and prototype development"
+
+  - name: control-plane
+    path: services/control_plane/
+    version: "2.0.0"
+    stability: stable
+    dependencies: [core]
+    description: "Cryptographic determinism, seeding, and session state"
+
+  - name: discovery-sentinel
+    path: services/discovery_sentinel/
+    version: "2.0.0"
+    stability: stable
+    dependencies: [core]
+    description: "Passive Shadow AI detection and risk analysis"
+
+  - name: artifact-engine
+    path: services/artifact_engine/
+    version: "2.0.0"
+    stability: stable
+    dependencies: [core]
+    description: "Deterministic code fix generation"
+
+  - name: extension
+    path: extension/
+    version: "2.0.0"
+    stability: stable
+    dependencies: []
+    description: "VS Code / GitHub Copilot Extension (TypeScript)"
+
+  - name: infrastructure
+    path: infrastructure/
+    version: "2.0.0"
+    stability: stable
+    dependencies: []
+    description: "Docker, Kubernetes, monitoring, and logging"
+
+  - name: automation
+    path: automation/
+    version: "2.0.0"
+    stability: stable
+    dependencies: [core, discovery-sentinel]
+    description: "Repo validation, module generation, policy enforcement"
+
+automation_status:
+  ci: enabled
+  dependency_scan: enabled
+  secret_scan: enabled
+  sentinel_scan: enabled
+
+external_repos: []
