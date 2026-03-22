@@ -16,4 +16,4 @@ def from_json(s: str) -> dict:
 
 
 def to_jsonl_line(obj: dict) -> str:
-    return json.dumps(obj)
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"))

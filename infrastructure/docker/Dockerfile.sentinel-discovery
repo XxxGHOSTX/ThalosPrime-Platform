@@ -1,15 +1,8 @@
 FROM python:3.11-slim
-
 WORKDIR /app
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 COPY thalos_core/ thalos_core/
 COPY services/ services/
-
-RUN mkdir -p runtime/statelog
-
-EXPOSE 8000
-
-CMD ["python", "-m", "thalos_core.app.main", "--seed", "2026032100000001"]
+EXPOSE 8001
+CMD ["python", "-m", "services.discovery_sentinel.main", "--seed", "2026032100000001", "--host", "0.0.0.0", "--port", "8001"]
