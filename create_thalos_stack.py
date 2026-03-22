@@ -8,7 +8,6 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 # Run once:  python create_thalos_stack.py
 # Creates all required directories and source files under the repo root.
 
-import os
 import sys
 from pathlib import Path
 
@@ -474,7 +473,7 @@ def handle_query(request: QueryRequest) -> dict:
                 "last_seed": seed,
                 "last_hash": result["hash"],
                 "thalos_sieve_score": result["sieve_score"],
-                "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+                "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             }
         )
         metrics = get_metrics_snapshot()
