@@ -73,7 +73,7 @@ def handle_query(request: QueryRequest) -> dict:
                 "last_seed": seed,
                 "last_hash": result["hash"],
                 "thalos_sieve_score": result["sieve_score"],
-                "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+                "updated_at": datetime.datetime.now(datetime.UTC).isoformat(),
             }
         )
         metrics = get_metrics_snapshot()
