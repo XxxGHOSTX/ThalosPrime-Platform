@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY thalos_core/ thalos_core/
+COPY services/ services/
+
+RUN mkdir -p runtime/statelog
+
+EXPOSE 8000
+
+ENTRYPOINT ["python", "-m", "thalos_core.app.main", "--seed"]
+CMD ["2026032100000001"]

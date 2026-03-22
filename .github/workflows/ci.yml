@@ -24,8 +24,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Bootstrap Thalos Core stack
+        run: python create_thalos_stack.py
+
       - name: Run linter (ruff)
-        run: ruff check services/ core/ system/ automation/
+        run: ruff check services/ core/ system/ automation/ thalos_core/
 
       - name: Run tests
         run: pytest tests/ -v --tb=short

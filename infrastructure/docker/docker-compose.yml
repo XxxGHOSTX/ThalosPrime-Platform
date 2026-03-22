@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  thalos-core:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.thalos-core
+    ports:
+      - "8000:8000"
+    command: ["--seed", "2026032100000001"]
+    volumes:
+      - statelog:/app/runtime/statelog
+    environment:
+      - THALOS_ROOT=/app
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.3
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=thalos2026
+    restart: unless-stopped
+
+volumes:
+  statelog:
