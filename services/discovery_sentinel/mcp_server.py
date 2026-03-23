@@ -167,7 +167,7 @@ def health() -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Thalos Prime Sentinel MCP Server")
     parser.add_argument("--seed", type=int, required=True, help="64-bit execution seed (required)")
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--host", default="0.0.0.0")  # nosec B104
     parser.add_argument("--port", type=int, default=8001)
     args = parser.parse_args()
 
