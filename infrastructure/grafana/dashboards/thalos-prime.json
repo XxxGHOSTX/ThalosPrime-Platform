@@ -1,0 +1,65 @@
+{
+  "uid": "thalos-prime-v2",
+  "title": "Thalos Prime Monitor",
+  "tags": ["thalos", "observability"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {"from": "now-1h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Latest Sieve Score",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "thalos_sieve_score",
+          "legendFormat": "sieve_score",
+          "refId": "A"
+        }
+      ],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "colorMode": "value"}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Ingestion Events Rate",
+      "gridPos": {"x": 6, "y": 0, "w": 9, "h": 4},
+      "targets": [
+        {
+          "expr": "rate(thalos_ingestion_events_total[1m])",
+          "legendFormat": "events/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Ingestion Failures Rate",
+      "gridPos": {"x": 15, "y": 0, "w": 9, "h": 4},
+      "targets": [
+        {
+          "expr": "rate(thalos_ingestion_failures_total[1m])",
+          "legendFormat": "failures/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Audit Writes",
+      "gridPos": {"x": 0, "y": 4, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "thalos_audit_writes_total",
+          "legendFormat": "audit_writes",
+          "refId": "A"
+        }
+      ],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "colorMode": "value"}
+    }
+  ]
+}

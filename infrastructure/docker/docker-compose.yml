@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+  thalos-core:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.thalos-core
+    ports:
+      - "8000:8000"
+    command: ["--seed", "2026032100000001"]
+    volumes:
+      - statelog:/app/runtime/statelog
+    environment:
+      - THALOS_ROOT=/app
+    networks:
+      - thalos-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  sentinel-discovery:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.sentinel-discovery
+    ports:
+      - "8001:8001"
+    command: ["--seed", "2026032100000001", "--host", "0.0.0.0", "--port", "8001"]
+    networks:
+      - thalos-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  prometheus:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - thalos-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  grafana:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=thalos2026
+    networks:
+      - thalos-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  thalos-net:
+    driver: bridge
+
+volumes:
+  statelog:
+
