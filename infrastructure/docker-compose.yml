@@ -14,7 +14,7 @@ services:
       - ../STATELOG:/app/STATELOG
     environment:
       - OWNER=Tony Ray Macier III
-      - SEED_STRENGTH=64BIT
+      - THALOS_API_TOKEN
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
