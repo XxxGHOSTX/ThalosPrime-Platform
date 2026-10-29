@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 from services.discovery_sentinel.mcp_server import app  # noqa: E402
 
-TOKEN = "test-only-token"
+TOKEN = "test-token-for-thalos-prime-platform-tests-000000"
 
 
 @pytest.fixture(autouse=True)
