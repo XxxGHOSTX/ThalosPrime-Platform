@@ -1,8 +1,6 @@
-# PROPRIETARY AND CONFIDENTIAL
-# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
-# Thalos Prime Sovereign Mesh Orchestration
-
-version: '3.9'
+# Local-development Compose file for the Thalos Prime Platform.
+# Host-published API ports are intentionally bound to loopback.
+# Configure THALOS_API_TOKEN in the caller's secure environment before starting.
 
 services:
   thalos-core:
@@ -10,14 +8,14 @@ services:
       context: ..
       dockerfile: infra/Dockerfile.core
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ../STATELOG:/app/STATELOG
     environment:
-      - OWNER=Tony Ray Macier III
-      - SEED_STRENGTH=64BIT
-      - DATABASE_URL=sqlite:///STATELOG/state.db
-      - THALOS_API_TOKEN
+      OWNER: "Tony Ray Macier III"
+      SEED_STRENGTH: "64BIT"
+      DATABASE_URL: "sqlite:///STATELOG/state.db"
+      THALOS_API_TOKEN: ${THALOS_API_TOKEN:?Set THALOS_API_TOKEN to a unique random value of at least 32 bytes}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -25,22 +23,16 @@ services:
       retries: 3
 
   sentinel-discovery:
-    build: ../services/discovery-sentinel
-    network_mode: "host"
+    build:
+      context: ..
+      dockerfile: services/discovery_sentinel/Dockerfile
     depends_on:
-      - thalos-core
+      thalos-core:
+        condition: service_healthy
     environment:
-      - CONTROL_PLANE_URL=http://localhost:8000
-      - OWNER=Tony Ray Macier III
-      - THALOS_API_TOKEN
-
-  concierge-extension-api:
-    image: node:20-alpine
-    working_dir: /app/extension
-    volumes:
-      - ../extension:/app/extension
-    command: npm run start-server
-    ports:
-      - "3000:3000"
-    depends_on:
-      - thalos-core
+      CONTROL_PLANE_URL: "http://thalos-core:8000"
+      OWNER: "Tony Ray Macier III"
+      THALOS_API_TOKEN: ${THALOS_API_TOKEN:?Set THALOS_API_TOKEN to a unique random value of at least 32 bytes}
+    # No host port is published for Sentinel tools; access is internal to this Compose network.
+    expose:
+      - "8001"
