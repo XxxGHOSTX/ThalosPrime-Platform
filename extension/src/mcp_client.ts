@@ -21,14 +21,20 @@ export interface McpCallResult {
 export class McpClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string) {
+  constructor(
+    baseUrl: string,
+    private readonly getApiToken: () => Promise<string>
+  ) {
     this.baseUrl = baseUrl;
   }
 
   async listTools(): Promise<McpTool[]> {
     const response = await fetch(`${this.baseUrl}/tools/list`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await this.getApiToken()}`,
+      },
       body: JSON.stringify({}),
     });
     if (!response.ok) {
@@ -41,7 +47,10 @@ export class McpClient {
   async callTool(toolName: string, args: Record<string, unknown>): Promise<McpCallResult> {
     const response = await fetch(`${this.baseUrl}/tools/call`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await this.getApiToken()}`,
+      },
       body: JSON.stringify({ name: toolName, arguments: args }),
     });
     if (!response.ok) {
