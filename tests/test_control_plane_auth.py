@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.control_plane.main import app
 
-TOKEN = "test-only-token"
+TOKEN = "test-token-for-thalos-prime-platform-tests-000000"
 
 
 @pytest.fixture(autouse=True)
