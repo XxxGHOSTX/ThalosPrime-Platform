@@ -10,13 +10,15 @@ services:
       context: ..
       dockerfile: infra/Dockerfile.core
     ports:
-      - "8000:8000"
+      # Keep the control plane local by default; expose through an authenticated reverse proxy if needed.
+      - "127.0.0.1:8000:8000"
     volumes:
       - ../STATELOG:/app/STATELOG
     environment:
       - OWNER=Tony Ray Macier III
       - SEED_STRENGTH=64BIT
       - DATABASE_URL=sqlite:///STATELOG/state.db
+      - THALOS_CONTROL_PLANE_API_TOKENS=${THALOS_CONTROL_PLANE_API_TOKENS:?Set THALOS_CONTROL_PLANE_API_TOKENS to a JSON identity-to-token map}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
