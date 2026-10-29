@@ -9,9 +9,9 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
-      - ../STATELOG:/app/STATELOG
+      - thalos-statelog:/app/STATELOG
     environment:
       - OWNER=Tony Ray Macier III
       - THALOS_API_TOKEN
@@ -20,3 +20,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  thalos-statelog:
