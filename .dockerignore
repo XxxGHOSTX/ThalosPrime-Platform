@@ -1,0 +1,28 @@
+# Never send credentials, local data, or repository metadata into image builds.
+.git
+.github
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node/build artifacts
+node_modules/
+**/node_modules/
+dist/
+coverage/
+
+# Local data and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
