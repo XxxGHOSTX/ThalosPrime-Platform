@@ -23,12 +23,18 @@ interface Session {
 export class ConciergeHandler {
   private sessions: Map<string, Session> = new Map();
 
-  constructor(private readonly controlPlaneUrl: string) {}
+  constructor(
+    private readonly controlPlaneUrl: string,
+    private readonly getApiToken: () => Promise<string>
+  ) {}
 
   async createSession(context: Record<string, unknown> = {}): Promise<string> {
     const response = await fetch(`${this.controlPlaneUrl}/sessions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await this.getApiToken()}`,
+      },
       body: JSON.stringify({ context }),
     });
     if (!response.ok) {
@@ -50,7 +56,10 @@ export class ConciergeHandler {
 
     const response = await fetch(`${this.controlPlaneUrl}/sessions/${sessionId}/turns`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await this.getApiToken()}`,
+      },
       body: JSON.stringify(turn),
     });
     if (!response.ok) {
