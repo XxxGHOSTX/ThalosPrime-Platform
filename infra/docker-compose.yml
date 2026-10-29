@@ -1,6 +1,7 @@
-# Local-development Compose file for the Thalos Prime Platform.
+# Local-development Compose file for Thalos Prime Platform.
 # Host-published API ports are intentionally bound to loopback.
-# Configure THALOS_API_TOKEN in the caller's secure environment before starting.
+# Set THALOS_API_TOKEN to a unique random value of at least 32 bytes before startup.
+# Do not use this Compose file as a public-production deployment without review.
 
 services:
   thalos-core:
@@ -10,7 +11,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - ../STATELOG:/app/STATELOG
+      - thalos-statelog:/app/STATELOG
     environment:
       OWNER: "Tony Ray Macier III"
       SEED_STRENGTH: "64BIT"
@@ -29,10 +30,17 @@ services:
     depends_on:
       thalos-core:
         condition: service_healthy
+    volumes:
+      - thalos-statelog:/app/STATELOG
     environment:
       CONTROL_PLANE_URL: "http://thalos-core:8000"
       OWNER: "Tony Ray Macier III"
       THALOS_API_TOKEN: ${THALOS_API_TOKEN:?Set THALOS_API_TOKEN to a unique random value of at least 32 bytes}
-    # No host port is published for Sentinel tools; access is internal to this Compose network.
+    # Sentinel has no host-published port. Access remains inside the private Compose network.
     expose:
       - "8001"
+
+# The VS Code extension is a client, not a standalone HTTP server. Build it separately:
+# cd extension && npm ci && npm run build
+volumes:
+  thalos-statelog:
