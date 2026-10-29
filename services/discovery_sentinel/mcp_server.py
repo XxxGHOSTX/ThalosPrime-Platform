@@ -7,13 +7,14 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 import sys
 import argparse
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 
 from .scanner import SentinelScanner
 from .risk_analyzer import RiskAnalyzer
 from .agentic_audit import AgenticAuditor
 from core.utilities import append_jsonl, now_iso, compute_sha256, validate_seed
+from services.auth import require_api_token
 
 app = FastAPI(
     title="Thalos Sentinel MCP Server",
@@ -25,7 +26,6 @@ _scanner = SentinelScanner()
 _analyzer = RiskAnalyzer()
 _auditor = AgenticAuditor()
 
-# MCP tool definitions — consumed by the Concierge Extension via McpClient
 TOOLS = [
     {
         "name": "sentinel/run-scan",
@@ -33,15 +33,8 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "log_entries": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Network log lines to scan",
-                },
-                "seed": {
-                    "type": "integer",
-                    "description": "64-bit execution seed for deterministic reproducibility",
-                },
+                "log_entries": {"type": "array", "items": {"type": "string"}, "description": "Network log lines to scan"},
+                "seed": {"type": "integer", "description": "64-bit execution seed for deterministic reproducibility"},
             },
             "required": ["log_entries", "seed"],
         },
@@ -52,10 +45,7 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "findings": {
-                    "type": "array",
-                    "description": "Findings list from a previous sentinel/run-scan call",
-                },
+                "findings": {"type": "array", "description": "Findings list from a previous sentinel/run-scan call"},
                 "seed": {"type": "integer", "description": "64-bit execution seed"},
             },
             "required": ["findings", "seed"],
@@ -81,15 +71,15 @@ class ToolCallRequest(BaseModel):
     arguments: dict = {}
 
 
-@app.post("/tools/list")
+@app.post("/tools/list", dependencies=[Depends(require_api_token)])
 def list_tools() -> dict:
-    """Return all available MCP tools."""
+    """Return available MCP tools to authenticated callers."""
     return {"tools": TOOLS}
 
 
-@app.post("/tools/call")
+@app.post("/tools/call", dependencies=[Depends(require_api_token)])
 def call_tool(request: ToolCallRequest) -> dict:
-    """Invoke a named MCP tool with the provided arguments."""
+    """Invoke an authenticated named MCP tool."""
     name = request.name
     args = request.arguments
 
@@ -117,15 +107,7 @@ def call_tool(request: ToolCallRequest) -> dict:
         findings = args.get("findings", [])
         report = _analyzer.analyze(findings)
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": (
-                        f"Risk Level: {report.risk_level} | Score: {report.total_score} | "
-                        f"Findings: {len(report.findings)}"
-                    ),
-                }
-            ],
+            "content": [{"type": "text", "text": f"Risk Level: {report.risk_level} | Score: {report.total_score} | Findings: {len(report.findings)}"}],
             "risk_level": report.risk_level,
             "risk_score": report.total_score,
             "isError": False,
@@ -136,17 +118,10 @@ def call_tool(request: ToolCallRequest) -> dict:
         html_content = args.get("html_content", "")
         result = _auditor.audit(url, html_content)
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": (
-                        f"Agentic Score: {result.agentic_score}/100 | "
-                        f"llms.txt: {result.has_llms_txt} | "
-                        f"Structured Data: {result.has_structured_data} | "
-                        f"Recommendations: {len(result.recommendations)}"
-                    ),
-                }
-            ],
+            "content": [{
+                "type": "text",
+                "text": f"Agentic Score: {result.agentic_score}/100 | llms.txt: {result.has_llms_txt} | Structured Data: {result.has_structured_data} | Recommendations: {len(result.recommendations)}",
+            }],
             "agentic_score": result.agentic_score,
             "recommendations": result.recommendations,
             "isError": False,
@@ -160,14 +135,14 @@ def call_tool(request: ToolCallRequest) -> dict:
 
 @app.get("/health")
 def health() -> dict:
-    """Liveness probe."""
+    """Public liveness probe."""
     return {"status": "ok", "service": "thalos-sentinel-mcp", "version": "2.0.0"}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Thalos Prime Sentinel MCP Server")
     parser.add_argument("--seed", type=int, required=True, help="64-bit execution seed (required)")
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
     args = parser.parse_args()
 
