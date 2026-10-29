@@ -7,8 +7,7 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 import sys
 import argparse
 
-from fastapi import Depends, FastAPI, Header, HTTPException
-
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
 from .session_manager import ThalosSessionManager
