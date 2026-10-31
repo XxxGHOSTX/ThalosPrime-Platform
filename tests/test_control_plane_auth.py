@@ -46,3 +46,18 @@ def test_missing_server_token_fails_closed(monkeypatch):
     monkeypatch.delenv("THALOS_API_TOKEN")
     response = TestClient(app).post("/sessions", json={"context": {}})
     assert response.status_code == 503
+
+
+def test_short_server_token_fails_closed(monkeypatch):
+    monkeypatch.setenv("THALOS_API_TOKEN", "too-short")
+    response = TestClient(app).post("/sessions", json={"context": {}})
+    assert response.status_code == 503
+
+
+def test_valid_length_token_rejects_wrong_value(monkeypatch):
+    monkeypatch.setenv("THALOS_API_TOKEN", TOKEN)
+    response = TestClient(
+        app,
+        headers={"Authorization": "Bearer " + ("x" * len(TOKEN))},
+    ).post("/sessions", json={"context": {}})
+    assert response.status_code == 401
