@@ -7,11 +7,12 @@ This code implements the Thalos Prime Sovereign Discovery Logic.
 import sys
 import argparse
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
 from .session_manager import ThalosSessionManager
 from core.utilities import validate_seed
+from services.auth import require_api_token
 
 app = FastAPI(
     title="Thalos Prime Control Plane",
@@ -33,7 +34,7 @@ class TurnRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict:
-    """Liveness probe — returns service status."""
+    """Public liveness probe; deliberately returns no session data."""
     return {
         "status": "ok",
         "service": "thalos-control-plane",
@@ -42,7 +43,7 @@ def health() -> dict:
     }
 
 
-@app.post("/sessions", status_code=201)
+@app.post("/sessions", status_code=201, dependencies=[Depends(require_api_token)])
 def create_session(request: SessionRequest) -> dict:
     """Create a new session and derive its deterministic execution seed."""
     session_id = _session_manager.create_session(context=request.context)
@@ -50,29 +51,29 @@ def create_session(request: SessionRequest) -> dict:
     return {"session_id": session_id, "seed": session["seed"]}
 
 
-@app.post("/sessions/{session_id}/turns")
+@app.post("/sessions/{session_id}/turns", dependencies=[Depends(require_api_token)])
 def add_turn(session_id: str, request: TurnRequest) -> dict:
     """Append a conversation turn to an existing session."""
     try:
         state_hash = _session_manager.add_turn(session_id, request.role, request.content)
         return {"state_hash": state_hash, "session_id": session_id}
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Session not found")
 
 
-@app.get("/sessions/{session_id}")
+@app.get("/sessions/{session_id}", dependencies=[Depends(require_api_token)])
 def get_session(session_id: str) -> dict:
     """Retrieve the full session state including all turns."""
     session = _session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Session not found")
     return session
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Thalos Prime Control Plane API")
     parser.add_argument("--seed", type=int, required=True, help="64-bit execution seed (required)")
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
 

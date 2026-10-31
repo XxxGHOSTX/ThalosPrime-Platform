@@ -1,8 +1,7 @@
-# PROPRIETARY AND CONFIDENTIAL
-# Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
-# Thalos Prime Sovereign Mesh Orchestration
-
-version: '3.9'
+# Local-development Compose file for Thalos Prime Platform.
+# Host-published API ports are intentionally bound to loopback.
+# Set THALOS_API_TOKEN to a unique random value of at least 32 bytes before startup.
+# Do not use this Compose file as a public-production deployment without review.
 
 services:
   thalos-core:
@@ -10,13 +9,14 @@ services:
       context: ..
       dockerfile: infra/Dockerfile.core
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
-      - ../STATELOG:/app/STATELOG
+      - thalos-statelog:/app/STATELOG
     environment:
-      - OWNER=Tony Ray Macier III
-      - SEED_STRENGTH=64BIT
-      - DATABASE_URL=sqlite:///STATELOG/state.db
+      OWNER: "Tony Ray Macier III"
+      SEED_STRENGTH: "64BIT"
+      DATABASE_URL: "sqlite:///STATELOG/state.db"
+      THALOS_API_TOKEN: ${THALOS_API_TOKEN:?Set THALOS_API_TOKEN to a unique random value of at least 32 bytes}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -24,21 +24,23 @@ services:
       retries: 3
 
   sentinel-discovery:
-    build: ../services/discovery-sentinel
-    network_mode: "host"
+    build:
+      context: ..
+      dockerfile: services/discovery_sentinel/Dockerfile
     depends_on:
-      - thalos-core
-    environment:
-      - CONTROL_PLANE_URL=http://localhost:8000
-      - OWNER=Tony Ray Macier III
-
-  concierge-extension-api:
-    image: node:20-alpine
-    working_dir: /app/extension
+      thalos-core:
+        condition: service_healthy
     volumes:
-      - ../extension:/app/extension
-    command: npm run start-server
-    ports:
-      - "3000:3000"
-    depends_on:
-      - thalos-core
+      - thalos-statelog:/app/STATELOG
+    environment:
+      CONTROL_PLANE_URL: "http://thalos-core:8000"
+      OWNER: "Tony Ray Macier III"
+      THALOS_API_TOKEN: ${THALOS_API_TOKEN:?Set THALOS_API_TOKEN to a unique random value of at least 32 bytes}
+    # Sentinel has no host-published port. Access remains inside the private Compose network.
+    expose:
+      - "8001"
+
+# The VS Code extension is a client, not a standalone HTTP server. Build it separately:
+# cd extension && npm ci && npm run build
+volumes:
+  thalos-statelog:

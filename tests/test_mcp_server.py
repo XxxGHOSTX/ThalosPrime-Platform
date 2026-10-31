@@ -1,30 +1,42 @@
 """
-PROPRIETARY AND CONFIDENTIAL
-Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
-This code implements the Thalos Prime Sovereign Discovery Logic.
+Thalos Prime Sentinel MCP Server API tests, including authentication controls.
 """
 
 import sys
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 from services.discovery_sentinel.mcp_server import app  # noqa: E402
 
-client = TestClient(app)
+TOKEN = "test-token-for-thalos-prime-platform-tests-000000"
+
+
+@pytest.fixture(autouse=True)
+def configure_test_token(monkeypatch):
+    monkeypatch.setenv("THALOS_API_TOKEN", TOKEN)
+
+
+client = TestClient(app, headers={"Authorization": f"Bearer {TOKEN}"})
 
 
 def test_health_returns_ok():
-    response = client.get("/health")
+    response = TestClient(app).get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
     assert data["service"] == "thalos-sentinel-mcp"
 
 
-def test_list_tools_returns_all_tools():
+def test_tools_list_requires_authentication():
+    response = TestClient(app).post("/tools/list", json={})
+    assert response.status_code == 401
+
+
+def test_tools_list_returns_all_tools():
     response = client.post("/tools/list", json={})
     assert response.status_code == 200
     data = response.json()
@@ -60,7 +72,6 @@ def test_run_scan_detects_shadow_ai():
     assert response.status_code == 200
     data = response.json()
     assert data["isError"] is False
-    # Content should mention the finding
     assert "SHADOW_AI_DETECTED" in data["content"][0]["text"]
 
 
@@ -98,8 +109,7 @@ def test_unknown_tool_returns_error():
         json={"name": "sentinel/nonexistent", "arguments": {}},
     )
     assert response.status_code == 200
-    data = response.json()
-    assert data["isError"] is True
+    assert response.json()["isError"] is True
 
 
 def test_run_scan_is_deterministic():
@@ -113,3 +123,16 @@ def test_run_scan_is_deterministic():
         json={"name": "sentinel/run-scan", "arguments": {"log_entries": logs, "seed": 9876543210123456}},
     )
     assert r1.json()["state_hash"] == r2.json()["state_hash"]
+
+
+def test_invalid_token_is_rejected():
+    response = TestClient(app, headers={"Authorization": "Bearer invalid"}).post(
+        "/tools/list", json={}
+    )
+    assert response.status_code == 401
+
+
+def test_missing_server_token_fails_closed(monkeypatch):
+    monkeypatch.delenv("THALOS_API_TOKEN")
+    response = TestClient(app).post("/tools/list", json={})
+    assert response.status_code == 503

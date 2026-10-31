@@ -9,7 +9,39 @@ import { ConciergeHandler } from "./concierge_handler";
  * Default Control Plane URL. Override via the THALOS_CONTROL_PLANE_URL
  * environment variable or VS Code settings (thalos.controlPlaneUrl).
  */
-const DEFAULT_CONTROL_PLANE_URL = "http://localhost:8000";
+const DEFAULT_CONTROL_PLANE_URL = "http://127.0.0.1:8000";
+const API_TOKEN_SECRET_KEY = "thalos.apiToken";
+
+/**
+ * Retrieve a high-entropy API token from VS Code's SecretStorage.
+ * If none is saved, request it without echoing it and save it only in
+ * SecretStorage. Never place the token in workspace settings.
+ */
+async function getApiToken(context: vscode.ExtensionContext): Promise<string> {
+  let value = await context.secrets.get(API_TOKEN_SECRET_KEY);
+  if (!value) {
+    const entered = await vscode.window.showInputBox({
+      prompt: "Enter the Thalos Prime API token (at least 32 characters). It will be saved in VS Code SecretStorage.",
+      password: true,
+      ignoreFocusOut: true,
+      validateInput: (candidate) =>
+        candidate.trim().length >= 32 ? undefined : "Token must be at least 32 characters long.",
+    });
+    if (!entered) {
+      throw new Error("A Thalos Prime API token is required. Run the chat request again after entering it.");
+    }
+    value = entered.trim();
+    if (value.length < 32) {
+      throw new Error("Thalos Prime API token must be at least 32 characters.");
+    }
+    await context.secrets.store(API_TOKEN_SECRET_KEY, value);
+  }
+  if (value.length < 32) {
+    await context.secrets.delete(API_TOKEN_SECRET_KEY);
+    throw new Error("The saved Thalos Prime API token is too short. Re-enter a valid token.");
+  }
+  return value;
+}
 
 /**
  * VS Code extension activation entry point.
@@ -21,7 +53,7 @@ export function activate(context: vscode.ExtensionContext): void {
     (config.get<string>("controlPlaneUrl") ?? process.env["THALOS_CONTROL_PLANE_URL"]) ||
     DEFAULT_CONTROL_PLANE_URL;
 
-  const handler = new ConciergeHandler(controlPlaneUrl);
+  const handler = new ConciergeHandler(controlPlaneUrl, () => getApiToken(context));
 
   // Register the @concierge chat participant
   const participant = vscode.chat.createChatParticipant(

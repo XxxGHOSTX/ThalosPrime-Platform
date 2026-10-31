@@ -9,14 +9,17 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
-      - ../STATELOG:/app/STATELOG
+      - thalos-statelog:/app/STATELOG
     environment:
       - OWNER=Tony Ray Macier III
-      - SEED_STRENGTH=64BIT
+      - THALOS_API_TOKEN
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  thalos-statelog:
