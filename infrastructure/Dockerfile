@@ -1,7 +1,7 @@
 # PROPRIETARY AND CONFIDENTIAL
 # Copyright © 2026 Tony Ray Macier III. All Rights Reserved.
 
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 LABEL maintainer="Tony Ray Macier III"
 LABEL description="Thalos Prime Infrastructure — Base Image"
