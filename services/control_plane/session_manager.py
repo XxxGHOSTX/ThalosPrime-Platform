@@ -20,11 +20,14 @@ class ThalosSessionManager:
         self.state_store = ThalosStateStore()
         self._sessions: dict[str, dict] = {}
 
-    def create_session(self, context: dict | None = None) -> str:
+    def create_session(self, context: dict | None = None, owner_id: str = "local") -> str:
+        if not isinstance(owner_id, str) or not owner_id.strip():
+            raise ValueError("owner_id must be a non-empty string")
         session_id = str(uuid.uuid4())
         seed = self.seed_manager.derive_execution_seed(context or {}, session_id)
         self._sessions[session_id] = {
             "id": session_id,
+            "_owner_id": owner_id,
             "seed": seed,
             "context": context or {},
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -34,14 +37,18 @@ class ThalosSessionManager:
         self.state_store.write_event(session_id, "SESSION_CREATED", self._sessions[session_id], state_hash)
         return session_id
 
-    def add_turn(self, session_id: str, role: str, content: str) -> str:
-        if session_id not in self._sessions:
+    def add_turn(self, session_id: str, role: str, content: str, owner_id: str | None = None) -> str:
+        session = self._sessions.get(session_id)
+        if session is None or (owner_id is not None and session.get("_owner_id") != owner_id):
             raise KeyError(f"Session {session_id} not found")
         turn = {"role": role, "content": content, "timestamp": datetime.now(timezone.utc).isoformat()}
-        self._sessions[session_id]["turns"].append(turn)
+        session["turns"].append(turn)
         state_hash = sha256(json.dumps(turn, sort_keys=True).encode()).hexdigest()
         self.state_store.write_event(session_id, "TURN_ADDED", turn, state_hash)
         return state_hash
 
-    def get_session(self, session_id: str) -> dict | None:
-        return self._sessions.get(session_id)
+    def get_session(self, session_id: str, owner_id: str | None = None) -> dict | None:
+        session = self._sessions.get(session_id)
+        if session is None or (owner_id is not None and session.get("_owner_id") != owner_id):
+            return None
+        return {key: value for key, value in session.items() if key != "_owner_id"}
